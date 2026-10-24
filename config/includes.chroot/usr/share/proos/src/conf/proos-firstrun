@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pro OS: ilk oturum açılışında masaüstü görünümünü bir kez ayarlar
+M="$HOME/.config/proos/ilk-acilis-tamam"
+[ -f "$M" ] && exit 0
+mkdir -p "$HOME/.config/proos"
+sleep 5
+WP=/usr/share/backgrounds/proos/proos-wallpaper.png
+setp() { xfconf-query -c "$1" -p "$2" -n -t "$3" -s "$4" 2>/dev/null; }
+for mon in $(xrandr --query 2>/dev/null | awk '/ connected/{print $1}') 0; do
+  for ws in 0 1 2 3; do
+    b="/backdrop/screen0/monitor$mon/workspace$ws"
+    setp xfce4-desktop "$b/last-image" string "$WP"
+    setp xfce4-desktop "$b/image-style" int 5
+    setp xfce4-desktop "$b/color-style" int 0
+  done
+done
+[ -d /usr/share/themes/Arc ] && { setp xsettings /Net/ThemeName string Arc; setp xfwm4 /general/theme string Arc; }
+[ -d /usr/share/icons/Papirus ] && setp xsettings /Net/IconThemeName string Papirus
+setp xfwm4 /general/button_layout string "|HMC"
+xdg-settings set default-web-browser chromium.desktop 2>/dev/null
+xfdesktop --reload 2>/dev/null
+touch "$M"

@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Pro OS
+Description=Pro OS açılış ekranı
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/proos
+ScriptFile=/usr/share/plymouth/themes/proos/proos.script

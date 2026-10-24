@@ -1,0 +1,50 @@
+# Pro OS açılış/kapanış ekranı: siyah zemin, logo, altında dönen noktalar
+Window.SetBackgroundTopColor(0.0, 0.0, 0.0);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+W = Window.GetWidth();
+H = Window.GetHeight();
+CX = Window.GetX() + W / 2;
+
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetX(CX - logo.image.GetWidth() / 2);
+logo.sprite.SetY(H / 2 - logo.image.GetHeight() / 2 - 50);
+logo.sprite.SetZ(10);
+
+dot.image = Image("dot.png");
+DOTS = 5;
+CY = H / 2 + logo.image.GetHeight() / 2 + 10;
+R = 20;
+for (i = 0; i < DOTS; i++)
+  {
+    dot[i].sprite = Sprite(dot.image);
+    dot[i].sprite.SetZ(20);
+    dot[i].sprite.SetOpacity(0);
+  }
+
+counter = 0;
+fun refresh_callback ()
+  {
+    counter++;
+    if (counter >= 110) counter = 0;
+    cyc = counter / 110;
+    for (i = 0; i < DOTS; i++)
+      {
+        t = cyc - i * 0.05;
+        if (t < 0) t = t + 1;
+        u = t / 0.65;
+        if (u > 1)
+            dot[i].sprite.SetOpacity(0);
+        else
+          {
+            if (u < 0.5) e = 2 * u * u;
+            else e = 1 - 2 * (1 - u) * (1 - u);
+            a = -3.14159 + e * 2 * 3.14159;
+            dot[i].sprite.SetX(CX + R * Math.Cos(a) - 8);
+            dot[i].sprite.SetY(CY + R * Math.Sin(a) - 8);
+            dot[i].sprite.SetOpacity(1);
+          }
+      }
+  }
+Plymouth.SetRefreshFunction(refresh_callback);

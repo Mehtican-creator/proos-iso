@@ -1,0 +1,30 @@
+---
+componentName: proos
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 900px,560px
+windowPlacement: center
+strings:
+    productName:         Pro OS
+    shortProductName:    ProOS
+    version:             "1.0"
+    shortVersion:        "1.0"
+    versionedName:       Pro OS 1.0
+    shortVersionedName:  ProOS 1.0
+    bootloaderEntryName: Pro OS
+    productUrl:          https://github.com
+    supportUrl:          https://github.com
+    knowledgeBaseUrl:    https://github.com
+    releaseNotesUrl:     https://github.com
+images:
+    productLogo:         "logo.png"
+    productIcon:         "logo.png"
+    productWelcome:      "welcome.png"
+slideshow:               "show.qml"
+slideshowAPI: 2
+style:
+   SidebarBackground:    "#05264b"
+   SidebarText:          "#FFFFFF"
+   SidebarTextSelect:    "#00b6ff"
+   SidebarTextHighlight: "#0a63c9"

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Pro OS'u Kur
+Name[en]=Install Pro OS
+Comment=Pro OS'u bilgisayara kurar
+Exec=sudo -E calamares
+TryExec=calamares
+Icon=proos
+Terminal=false
+Categories=System;

@@ -1,0 +1,57 @@
+#!/bin/sh
+# Pro OS: marka dosyalarını yerine koyar (chroot içinde çalışır)
+set -e
+A=/usr/share/proos/src
+[ -d "$A" ] || { echo "HATA: $A yok (includes.chroot uygulanmamış)"; exit 1; }
+for n in 16 22 24 32 48 64 96 128 256 512; do
+  d=/usr/share/icons/hicolor/${n}x${n}/apps; mkdir -p "$d"
+  install -m 644 "$A/icons/proos-$n.png" "$d/proos.png"
+  install -m 644 "$A/icons/proos-$n.png" "$d/distributor-logo.png"
+done
+mkdir -p /usr/share/pixmaps /usr/share/backgrounds/proos
+install -m 644 "$A/icons/proos-256.png" /usr/share/pixmaps/proos.png
+install -m 644 "$A/icons/proos-256.png" /usr/share/pixmaps/distributor-logo.png
+install -m 644 "$A/wallpaper.png" /usr/share/backgrounds/proos/proos-wallpaper.png
+install -m 644 "$A/login-bg.png"  /usr/share/backgrounds/proos/proos-login.png
+mkdir -p /usr/share/plymouth/themes/proos
+install -m 644 "$A/plymouth/"* /usr/share/plymouth/themes/proos/
+mkdir -p /etc/xdg/xfce4/panel /etc/xdg/xfce4/xfconf/xfce-perchannel-xml
+install -m 644 "$A/conf/xfce4-panel.xml" /etc/xdg/xfce4/panel/default.xml
+install -m 644 "$A/conf/xfce4-panel.xml" /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+install -m 644 "$A/conf/whiskermenu-defaults.rc" /etc/xdg/xfce4/panel/whiskermenu-defaults.rc
+mkdir -p /etc/skel/.config/xfce4/panel
+install -m 644 "$A/conf/whiskermenu-defaults.rc" /etc/skel/.config/xfce4/panel/whiskermenu-1.rc
+mkdir -p /etc/lightdm/lightdm.conf.d
+install -m 644 "$A/conf/lightdm-gtk-greeter.conf" /etc/lightdm/lightdm-gtk-greeter.conf
+install -m 644 "$A/conf/lightdm-proos.conf" /etc/lightdm/lightdm.conf.d/50-proos.conf
+install -m 644 "$A/conf/os-release" /usr/lib/os-release
+ln -sf ../usr/lib/os-release /etc/os-release
+install -m 644 "$A/conf/issue" /etc/issue
+install -m 644 "$A/conf/issue.net" /etc/issue.net
+install -m 755 "$A/conf/proos-firstrun" /usr/local/bin/proos-firstrun
+install -m 644 "$A/conf/proos-firstrun.desktop" /etc/xdg/autostart/proos-firstrun.desktop
+mkdir -p /etc/skel/.config/libreoffice/4/user
+install -m 644 "$A/conf/libreoffice.xcu" /etc/skel/.config/libreoffice/4/user/registrymodifications.xcu
+# GRUB başlığı (kurulan sistem için)
+if [ -f /etc/default/grub ]; then
+  sed -i 's/^GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="Pro OS"/' /etc/default/grub
+  grep -q 'splash' /etc/default/grub || sed -i 's/^\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 splash"/' /etc/default/grub
+fi
+# NetworkManager ağı yönetsin
+printf 'auto lo\niface lo inet loopback\n' > /etc/network/interfaces 2>/dev/null || true
+# Calamares: Pro OS markası
+if [ -d /etc/calamares ]; then
+  mkdir -p /etc/calamares/branding
+  rm -rf /etc/calamares/branding/proos
+  cp -r /usr/share/proos/calamares-proos /etc/calamares/branding/proos
+  if grep -q '^branding:' /etc/calamares/settings.conf; then
+    sed -i 's/^branding:.*/branding: proos/' /etc/calamares/settings.conf
+  else
+    echo 'branding: proos' >> /etc/calamares/settings.conf
+  fi
+fi
+# açılış teması
+plymouth-set-default-theme proos || echo "UYARI: plymouth teması ayarlanamadı"
+echo /usr/sbin/lightdm > /etc/X11/default-display-manager
+gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || true
+exit 0

@@ -1,0 +1,9 @@
+PRETTY_NAME="Pro OS 1.0"
+NAME="Pro OS"
+VERSION_ID="1.0"
+VERSION="1.0 (Debian 13 tabanlı)"
+VERSION_CODENAME=trixie
+ID=proos
+ID_LIKE=debian
+HOME_URL="https://www.debian.org/"
+LOGO=proos

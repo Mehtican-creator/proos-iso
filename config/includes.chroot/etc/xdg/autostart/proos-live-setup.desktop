@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Pro OS canli oturum
+Exec=/usr/local/bin/proos-live-setup
+OnlyShowIn=XFCE;
+NoDisplay=true

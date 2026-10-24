@@ -1,0 +1,11 @@
+button-icon=proos
+show-button-title=false
+show-button-icon=true
+button-single-row=false
+launcher-show-name=true
+launcher-show-description=false
+category-show-name=true
+item-icon-size=2
+category-icon-size=1
+view-mode=0
+position-search-alternate=true
