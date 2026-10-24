@@ -1,0 +1,25 @@
+name: Pro OS ISO derle
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Disk alanı aç
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache /usr/local/share/boost
+          df -h /
+      - name: ISO derle (Debian 13 kabı içinde)
+        run: |
+          docker run --rm --privileged -v "$PWD":/work -w /work debian:trixie bash build.sh
+      - name: Özet
+        run: ls -lh ProOS.iso
+      - name: ISO yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProOS-iso
+          path: ProOS.iso
+          compression-level: 0
+          retention-days: 14
