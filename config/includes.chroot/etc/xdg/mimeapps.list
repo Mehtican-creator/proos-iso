@@ -1,0 +1,7 @@
+[Default Applications]
+application/x-ms-dos-executable=proos-wine.desktop
+application/vnd.microsoft.portable-executable=proos-wine.desktop
+application/x-msdownload=proos-wine.desktop
+application/x-dosexec=proos-wine.desktop
+application/x-msi=proos-wine.desktop
+application/x-ms-installer=proos-wine.desktop

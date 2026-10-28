@@ -1,0 +1,18 @@
+#!/bin/sh
+# kullanim: proos-kisayol-ekle [HEDEF_KLASOR]   (bos ise Masaustu)
+if [ -n "$1" ] && [ -d "$1" ]; then D="$1"
+else D="$(xdg-user-dir DESKTOP 2>/dev/null)"; [ -n "$D" ] || D="$HOME/Desktop"; fi
+mkdir -p "$D"
+tur=$(zenity --list --radiolist --title="Kısayol Ekle" --text="Neyin kısayolunu eklemek istiyorsun?" \
+  --column="" --column="Tür" TRUE "Dosya" FALSE "Klasör" --height=220 --width=320) || exit 0
+if [ "$tur" = "Klasör" ]; then
+  yol=$(zenity --file-selection --directory --title="Klasör seç" --filename="$HOME/") || exit 0
+else
+  yol=$(zenity --file-selection --title="Dosya seç" --filename="$HOME/") || exit 0
+fi
+[ -e "$yol" ] || { zenity --error --text="Seçilen yol bulunamadı."; exit 1; }
+ad=$(basename "$yol")
+if [ -e "$D/$ad" ]; then
+  zenity --question --text="Bu klasörde '$ad' zaten var. Üstüne yazılsın mı?" || exit 0
+fi
+ln -sfn "$yol" "$D/$ad" && zenity --info --text="'$ad' için kısayol eklendi." --timeout=2

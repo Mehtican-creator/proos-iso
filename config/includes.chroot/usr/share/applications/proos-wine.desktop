@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Windows Programi (Wine)
+Comment=Windows programlarini calistirir
+Exec=wine start /unix %f
+Icon=wine
+Terminal=false
+NoDisplay=true
+Categories=Utility;
+MimeType=application/x-ms-dos-executable;application/vnd.microsoft.portable-executable;application/x-msdownload;application/x-dosexec;application/x-msi;application/x-ms-installer;

@@ -16,9 +16,9 @@ lb config \
   --debian-installer none \
   --apt-recommends true \
   --chroot-squashfs-compression-type zstd \
-  --iso-application "Pro OS" --iso-volume "PRO_OS" \
+  --iso-application "ProOS" --iso-volume "PRO_OS" \
   --bootappend-live "boot=live components quiet splash locales=tr_TR.UTF-8 keyboard-layouts=tr timezone=Europe/Istanbul username=proos hostname=proos"
-chmod +x config/hooks/live/*.hook.chroot config/includes.chroot/usr/local/bin/*
+chmod +x config/hooks/live/*.hook.chroot config/includes.chroot/usr/local/bin/* 2>/dev/null || true
 lb build
 ISO=$(ls -1 *.iso | head -n1)
 mv "$ISO" ../ProOS.iso

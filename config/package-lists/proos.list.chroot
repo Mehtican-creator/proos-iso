@@ -69,3 +69,8 @@ firmware-iwlwifi
 firmware-realtek
 firmware-atheros
 firmware-misc-nonfree
+# --- Windows uygulamalari (.exe) ve araclar
+wine
+icoutils
+imagemagick
+zenity

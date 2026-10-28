@@ -54,4 +54,9 @@ fi
 plymouth-set-default-theme proos || echo "UYARI: plymouth teması ayarlanamadı"
 echo /usr/sbin/lightdm > /etc/X11/default-display-manager
 gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || true
+# 'Debian' yazilarini ProOS yap (hata verirse derlemeyi durdurma)
+PROOS_NO_UPDATE_GRUB=1 bash /usr/share/proos/markalama.sh >/dev/null 2>&1 || echo "UYARI: markalama.sh calismadi"
+/usr/local/bin/proos-marka-uygula >/dev/null 2>&1 || echo "UYARI: proos-marka-uygula calismadi"
+/usr/local/bin/proos-gorsel-uygula >/dev/null 2>&1 || echo "UYARI: proos-gorsel-uygula calismadi"
+update-desktop-database /usr/share/applications 2>/dev/null || true
 exit 0

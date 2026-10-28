@@ -1,0 +1,14 @@
+#!/bin/sh
+# kullanim: proos-exe-thumb GIRIS.exe CIKIS.png BOYUT
+in="$1"; out="$2"; size="${3:-128}"
+d=$(mktemp -d) || exit 1
+trap 'rm -rf "$d"' EXIT
+wrestool -x --type=14 -o "$d" "$in" 2>/dev/null
+for f in "$d"/*.ico; do [ -f "$f" ] && icotool -x -o "$d" "$f" 2>/dev/null; done
+best=$(ls -S "$d"/*.png 2>/dev/null | head -n1)
+[ -n "$best" ] || exit 1
+if command -v convert >/dev/null 2>&1; then
+  convert "$best" -resize "${size}x${size}" "$out" 2>/dev/null || cp "$best" "$out"
+else
+  cp "$best" "$out"
+fi

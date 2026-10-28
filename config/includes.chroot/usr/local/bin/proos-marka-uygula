@@ -1,0 +1,104 @@
+#!/usr/bin/python3 -I
+# ProOS: arayuzde gorunen "Xfce" adini ProOS yapar (.desktop adlari ve Turkce/diger dil cevirileri).
+# Tekrar tekrar calistirilabilir. Paket guncellemesinden sonra otomatik yeniden calisir.
+import glob, os, re, shutil, struct, sys
+
+ROOT = os.environ.get("PROOS_ROOT", "")
+YEDEK = ROOT + "/var/lib/proos/yedek"
+YENI = "ProOS"
+KELIME = re.compile(rb"(?<![A-Za-z0-9])(?:Xfce|XFCE)(?![A-Za-z0-9])")
+KELIME_S = re.compile(r"(?<![A-Za-z0-9])(?:Xfce|XFCE)(?![A-Za-z0-9])")
+ALAN = re.compile(r"^(Name|GenericName|Comment)(\[[^\]]*\])?=")
+DOMAIN = re.compile(r"(xfce|thunar|xfwm|xfdesktop|garcon|exo|libxfce|xfconf|tumbler|whiskermenu|"
+                    r"xfburn|ristretto|mousepad|orage|panel|lightdm|settings|session|power-manager|"
+                    r"screensaver|screenshooter|taskmanager|appfinder|notifyd|volman|archive|pulseaudio)", re.I)
+
+def yedekle(yol):
+    hedef = YEDEK + yol[len(ROOT):]
+    os.makedirs(os.path.dirname(hedef), exist_ok=True)
+    shutil.copy2(yol, hedef)
+
+def desktop_yama(yol):
+    try:
+        metin = open(yol, encoding="utf-8").read()
+    except (OSError, UnicodeDecodeError):
+        return False
+    yeni, degisti = [], False
+    for satir in metin.split("\n"):
+        if ALAN.match(satir) and KELIME_S.search(satir):
+            satir = KELIME_S.sub(YENI, satir); degisti = True
+        yeni.append(satir)
+    if not degisti:
+        return False
+    yedekle(yol)
+    open(yol, "w", encoding="utf-8").write("\n".join(yeni))
+    return True
+
+def mo_oku(veri):
+    sihir = struct.unpack("<I", veri[:4])[0]
+    e = "<" if sihir == 0x950412de else ">" if sihir == 0xde120495 else None
+    if e is None:
+        return None
+    n, oo, to = struct.unpack(e + "III", veri[8:20])
+    ids, trs = [], []
+    for i in range(n):
+        l, o = struct.unpack(e + "II", veri[oo + 8 * i: oo + 8 * i + 8]); ids.append(veri[o:o + l])
+        l, o = struct.unpack(e + "II", veri[to + 8 * i: to + 8 * i + 8]); trs.append(veri[o:o + l])
+    return e, ids, trs
+
+def mo_yaz(e, ids, trs):
+    n = len(ids)
+    kos = 28
+    tab_o = kos
+    tab_t = kos + 8 * n
+    pos = tab_t + 8 * n
+    oent, tent, govde = [], [], b""
+    for s in ids:
+        oent.append((len(s), pos + len(govde))); govde += s + b"\0"
+    for s in trs:
+        tent.append((len(s), pos + len(govde))); govde += s + b"\0"
+    cikti = struct.pack(e + "7I", 0x950412de, 0, n, tab_o, tab_t, 0, 0)
+    for l, o in oent: cikti += struct.pack(e + "II", l, o)
+    for l, o in tent: cikti += struct.pack(e + "II", l, o)
+    return cikti + govde
+
+def mo_yama(yol):
+    try:
+        veri = open(yol, "rb").read()
+    except OSError:
+        return False
+    if b"Xfce" not in veri and b"XFCE" not in veri:
+        return False
+    r = mo_oku(veri)
+    if not r:
+        return False
+    e, ids, trs = r
+    degisti = False
+    for i, (a, t) in enumerate(zip(ids, trs)):
+        if a == b"":
+            continue
+        y = KELIME.sub(YENI.encode(), t)
+        if y != t:
+            trs[i] = y; degisti = True
+    if not degisti:
+        return False
+    yedekle(yol)
+    tmp = yol + ".proos-tmp"
+    open(tmp, "wb").write(mo_yaz("<", ids, trs))
+    os.replace(tmp, yol)
+    return True
+
+def main():
+    d = m = 0
+    desen = ["/usr/share/applications/*.desktop", "/usr/share/xsessions/*.desktop",
+             "/usr/share/wayland-sessions/*.desktop", "/usr/share/desktop-directories/*.directory",
+             "/usr/local/share/applications/*.desktop"]
+    for p in desen:
+        for f in glob.glob(ROOT + p):
+            if desktop_yama(f): d += 1
+    for f in glob.glob(ROOT + "/usr/share/locale/*/LC_MESSAGES/*.mo"):
+        if DOMAIN.search(os.path.basename(f)) and mo_yama(f): m += 1
+    print("ProOS markalama: %d menu/oturum dosyasi, %d ceviri dosyasi guncellendi." % (d, m))
+
+if __name__ == "__main__":
+    main()

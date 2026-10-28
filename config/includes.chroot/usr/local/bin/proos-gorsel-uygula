@@ -1,0 +1,119 @@
+#!/usr/bin/python3 -I
+# ProOS: Debian/Xfce duvar kagitlarini ProOS setiyle degistirir, "Hakkinda" logosunu ProOS yapar.
+# Tekrar calistirilabilir; paket guncellemesinden sonra otomatik yeniden calisir.
+import base64, os, re, shutil, struct, sys
+
+ROOT = os.environ.get("PROOS_ROOT", "")
+YEDEK = ROOT + "/var/lib/proos/yedek"
+KAYNAK = ROOT + "/usr/share/proos/duvar"
+BG = ROOT + "/usr/share/backgrounds"
+LOGO_RE = re.compile(r"^(org\.xfce\.(about|xfce4-about|xfce4-logo|logo)|xfce4?-?logo|xfce4_xicon\d*|xfce-about|xfce4-about)\.(png|svg)$")
+
+def yedekle(yol):
+    hedef = YEDEK + yol[len(ROOT):]
+    if os.path.lexists(hedef):
+        return
+    os.makedirs(os.path.dirname(hedef), exist_ok=True)
+    if os.path.isdir(yol) and not os.path.islink(yol):
+        shutil.move(yol, hedef)
+    else:
+        shutil.copy2(yol, hedef, follow_symlinks=False)
+
+def duvarlar():
+    if not os.path.isdir(KAYNAK):
+        print("UYARI: duvar kagidi kaynagi yok:", KAYNAK); return 0
+    bizim = sorted(f for f in os.listdir(KAYNAK) if f.lower().endswith((".jpg", ".png")))
+    os.makedirs(BG, exist_ok=True)
+    # Debian / Xfce'nin kendi duvar kagitlarini kenara al
+    for ad in os.listdir(BG):
+        yol = os.path.join(BG, ad)
+        if ad == "proos":
+            continue
+        if ad == "xfce" and os.path.isdir(yol) and not os.path.islink(yol):
+            for alt in os.listdir(yol):
+                if alt not in bizim:
+                    yedekle(os.path.join(yol, alt)); os.remove(os.path.join(yol, alt)) if os.path.lexists(os.path.join(yol, alt)) else None
+            continue
+        if ad in bizim:
+            continue
+        yedekle(yol)
+        if os.path.lexists(yol):
+            shutil.rmtree(yol) if os.path.isdir(yol) and not os.path.islink(yol) else os.remove(yol)
+    for klasor in ("proos", "xfce"):
+        k = os.path.join(BG, klasor); os.makedirs(k, exist_ok=True)
+        for f in bizim:
+            shutil.copy2(os.path.join(KAYNAK, f), os.path.join(k, f))
+    return len(bizim)
+
+def png_boyut(yol):
+    try:
+        with open(yol, "rb") as f:
+            b = f.read(24)
+        if b[:8] == b"\x89PNG\r\n\x1a\n":
+            return struct.unpack(">II", b[16:24])[0]
+    except OSError:
+        pass
+    return 128
+
+def en_yakin_logo(boyut):
+    adaylar = []
+    for n in (16, 22, 24, 32, 48, 64, 96, 128, 256, 512):
+        y = "%s/usr/share/icons/hicolor/%dx%d/apps/proos.png" % (ROOT, n, n)
+        if os.path.isfile(y):
+            adaylar.append((abs(n - boyut), y))
+    if adaylar:
+        return min(adaylar)[1]
+    y = ROOT + "/usr/share/pixmaps/proos.png"
+    return y if os.path.isfile(y) else None
+
+def logo_svg():
+    y = en_yakin_logo(256)
+    if not y:
+        return None
+    b64 = base64.b64encode(open(y, "rb").read()).decode()
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" '
+            'xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 256 256">'
+            '<image width="256" height="256" xlink:href="data:image/png;base64,%s"/></svg>\n' % b64).encode()
+
+def logolar():
+    svg = logo_svg()
+    sayi, liste = 0, []
+    for kok in (ROOT + "/usr/share/icons", ROOT + "/usr/share/pixmaps"):
+        for d, _, dosyalar in os.walk(kok):
+            if "/proos" in d:
+                pass
+            for f in dosyalar:
+                if not LOGO_RE.match(f):
+                    continue
+                yol = os.path.join(d, f)
+                if f.endswith(".svg"):
+                    yeni = svg
+                else:
+                    kaynak = en_yakin_logo(png_boyut(yol)) if not os.path.islink(yol) else en_yakin_logo(128)
+                    yeni = open(kaynak, "rb").read() if kaynak else None
+                if yeni is None:
+                    continue
+                if not os.path.islink(yol):
+                    try:
+                        if open(yol, "rb").read() == yeni:
+                            continue
+                    except OSError:
+                        pass
+                yedekle(yol)
+                if os.path.lexists(yol):
+                    os.remove(yol)           # sembolik bagsa hedefe dokunma, bagin kendisini degistir
+                open(yol, "wb").write(yeni)
+                sayi += 1; liste.append(yol[len(ROOT):])
+    return sayi, liste
+
+def main():
+    n = duvarlar()
+    s, liste = logolar()
+    print("ProOS gorsel ayari: %d duvar kagidi yerlestirildi, %d logo dosyasi degistirildi." % (n, s))
+    for y in liste[:15]:
+        print("  logo:", y)
+    if not liste:
+        print("  (Degistirilecek Xfce 'Hakkinda' logosu bulunamadi; ekran goruntusu gonderirsen bakarim.)")
+
+if __name__ == "__main__":
+    main()

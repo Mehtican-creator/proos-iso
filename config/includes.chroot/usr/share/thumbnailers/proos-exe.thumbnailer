@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+TryExec=wrestool
+Exec=/usr/local/bin/proos-exe-thumb %i %o %s
+MimeType=application/x-ms-dos-executable;application/vnd.microsoft.portable-executable;application/x-msdownload;application/x-dosexec;

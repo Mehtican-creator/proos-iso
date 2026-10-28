@@ -1,0 +1,1 @@
+DPkg::Post-Invoke { "[ -x /usr/local/bin/proos-gorsel-uygula ] && /usr/local/bin/proos-gorsel-uygula >/dev/null 2>&1 || true"; };

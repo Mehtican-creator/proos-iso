@@ -19,4 +19,18 @@ done
 setp xfwm4 /general/button_layout string "|HMC"
 xdg-settings set default-web-browser chromium.desktop 2>/dev/null
 xfdesktop --reload 2>/dev/null
+# Windows programlari icin kolay erisim (Wine C: surucusu)
+if command -v wineboot >/dev/null 2>&1; then
+  (
+    WINEDEBUG=-all wineboot -u >/dev/null 2>&1
+    C="$HOME/.wine/drive_c"
+    [ -d "$C" ] || exit 0
+    mkdir -p "$C/Program Files"
+    [ -e "$HOME/Windows Programları" ] || ln -sfn "$C/Program Files" "$HOME/Windows Programları"
+    [ -e "$HOME/Windows Dosyaları" ] || ln -sfn "$C" "$HOME/Windows Dosyaları"
+    BM="$HOME/.config/gtk-3.0/bookmarks"; mkdir -p "$HOME/.config/gtk-3.0"; touch "$BM"
+    grep -q 'drive_c/Program%20Files ' "$BM" || echo "file://$C/Program%20Files Windows Programları" >> "$BM"
+    grep -q 'drive_c Windows' "$BM" || echo "file://$C Windows Dosyaları (C:)" >> "$BM"
+  ) &
+fi
 touch "$M"
